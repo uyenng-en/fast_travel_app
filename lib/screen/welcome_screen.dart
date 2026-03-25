@@ -38,7 +38,7 @@ class _WelcomeState extends State<Welcome> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset("assets/images/logo_welcome.png"),
-              const SizedBox(height: 32),
+              const SizedBox(height: 10),
               Text(
                 "Tìm nơi ở tốt nhất ở gần bạn",
                 textAlign: TextAlign.center,
