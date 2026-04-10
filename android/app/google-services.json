@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "154441362266",
+    "project_id": "fast-travel-3e64c",
+    "storage_bucket": "fast-travel-3e64c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:154441362266:android:219363ec4b54cbb4aba163",
+        "android_client_info": {
+          "package_name": "com.example.fast_travel_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-Wa5VcPi38nFeD-ifDMP3WCJ5gmRTnqw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
