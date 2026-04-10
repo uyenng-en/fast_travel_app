@@ -6,8 +6,6 @@ import '../screen/config_screen.dart';
 import '../screen/product_list_screen.dart';
 import '../screen/product_grid_screen.dart';
 import '../screen/product_table_screen.dart';
-import '../screen/category_manager_screen.dart';
-import '../screen/product_manager_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -149,32 +147,6 @@ class AppDrawer extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.category, color: Colors.blue),
-            title: const Text('Quản lý danh mục (SQLite)'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const CategoryManagerScreen(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.inventory, color: Colors.blue),
-            title: const Text('Quản lý sản phẩm (SQLite)'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ProductManagerScreen(),
-                ),
-              );
-            },
           ),
           const Divider(),
           // Firebase Section
