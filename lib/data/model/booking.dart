@@ -16,10 +16,10 @@ class HotelSnapshot {
 
   factory HotelSnapshot.fromMap(Map<String, dynamic> map) {
     return HotelSnapshot(
-      hotelName: map['hotelName'],
-      city: map['city'],
-      address: map['address'],
-      pricePerNight: map['pricePerNight'],
+      hotelName: map['hotelName'] ?? 'No Name',
+      city: map['city'] ?? 'No City',
+      address: map['address'] ?? 'No Address',
+      pricePerNight: map['pricePerNight'] ?? 0,
     );
   }
 
@@ -44,9 +44,9 @@ class RoomSnapshot {
 
   factory RoomSnapshot.fromMap(Map<String, dynamic> map) {
     return RoomSnapshot(
-      roomName: map['roomName'],
-      maxAdults: map['maxAdults'],
-      maxChildren: map['maxChildren'],
+      roomName: map['roomName'] ?? 'No Room',
+      maxAdults: map['maxAdults'] ?? 0,
+      maxChildren: map['maxChildren'] ?? 0,
     );
   }
 
@@ -110,36 +110,36 @@ class Booking {
   factory Booking.fromFirestore(
       DocumentSnapshot<Map<String, dynamic>> doc,
       ) {
-    final data = doc.data()!;
+    final data = doc.data() ?? {};
     return Booking(
       id: doc.id,
-      userId: data['userId'],
-      hotelId: data['hotelId'],
+      userId: data['userId'] ?? '',
+      hotelId: data['hotelId'] ?? '',
       roomTypeId: data['roomTypeId'],
-      checkinDate: data['checkinDate'],
-      checkoutDate: data['checkoutDate'],
-      roomsCount: data['roomsCount'],
-      adultsCount: data['adultsCount'],
-      childrenCount: data['childrenCount'],
-      bookingDate: data['bookingDate'],
-      paymentState: PaymentStateX.fromFirestore(data['paymentState']),
+      checkinDate: data['checkinDate'] ?? Timestamp.now(),
+      checkoutDate: data['checkoutDate'] ?? Timestamp.now(),
+      roomsCount: data['roomsCount'] ?? 0,
+      adultsCount: data['adultsCount'] ?? 0,
+      childrenCount: data['childrenCount'] ?? 0,
+      bookingDate: data['bookingDate'] ?? Timestamp.now(),
+      paymentState: PaymentStateX.fromFirestore(data['paymentState'] ?? 'pending'),
       paymentTiming: data['paymentTiming'] == null
           ? null
           : PaymentTimingX.fromFirestore(data['paymentTiming']),
-      bookingStatus: BookingStatusX.fromFirestore(data['bookingStatus']),
-      totalPrice: data['totalPrice'],
+      bookingStatus: BookingStatusX.fromFirestore(data['bookingStatus'] ?? 'confirmed'),
+      totalPrice: data['totalPrice'] ?? 0,
       cancelledAt: data['cancelledAt'],
       cancellationReason: data['cancellationReason'],
       hotelSnapshot: HotelSnapshot.fromMap(
-        Map<String, dynamic>.from(data['hotelSnapshot']),
+        Map<String, dynamic>.from(data['hotelSnapshot'] ?? {}),
       ),
       roomSnapshot: data['roomSnapshot'] == null
           ? null
           : RoomSnapshot.fromMap(
         Map<String, dynamic>.from(data['roomSnapshot']),
       ),
-      createdAt: data['createdAt'],
-      updatedAt: data['updatedAt'],
+      createdAt: data['createdAt'] ?? Timestamp.now(),
+      updatedAt: data['updatedAt'] ?? Timestamp.now(),
     );
   }
 

@@ -3,7 +3,8 @@ import 'hotel_manager_screen.dart';
 import 'room_type_manager_screen.dart';
 import 'hotel_review_manager_screen.dart';
 import 'user_manager_screen.dart';
-import '../widgets/app_drawer.dart';
+import 'booking_manager_screen.dart';
+import 'payment_manager_screen.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
@@ -14,7 +15,6 @@ class AdminScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
       ),
-      drawer: AppDrawer(context: context),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: GridView.count(
@@ -49,6 +49,20 @@ class AdminScreen extends StatelessWidget {
               Icons.people,
               Colors.deepPurple,
               const UserManagerScreen(),
+            ),
+            _buildAdminCard(
+              context,
+              'Bookings',
+              Icons.book_online,
+              Colors.red,
+              const BookingManagerScreen(),
+            ),
+            _buildAdminCard(
+              context,
+              'Payments',
+              Icons.payment,
+              Colors.teal,
+              const PaymentManagerScreen(),
             ),
           ],
         ),

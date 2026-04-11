@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fast_travel_app/data/model/hotel.dart';
+import 'package:fast_travel_app/data/model/hotel_image.dart';
 import 'package:flutter/material.dart';
 
 class HotelManagerScreen extends StatefulWidget {
@@ -147,6 +148,142 @@ class _HotelManagerScreenState extends State<HotelManagerScreen> {
     );
   }
 
+  void _showImageDialog(String hotelId, [HotelImage? image]) {
+    final isEditing = image != null;
+    final pathController = TextEditingController(text: image?.imagePath ?? '');
+    final orderController = TextEditingController(text: image?.sortOrder.toString() ?? '1');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isEditing ? 'Update Image' : 'Add Image'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: pathController,
+              decoration: const InputDecoration(labelText: 'Image Path (e.g., hotel_1.jpg)'),
+            ),
+            TextField(
+              controller: orderController,
+              decoration: const InputDecoration(labelText: 'Sort Order'),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final data = {
+                'imagePath': pathController.text,
+                'sortOrder': int.tryParse(orderController.text) ?? 1,
+                'createdAt': isEditing ? image.createdAt : FieldValue.serverTimestamp(),
+              };
+
+              final imagesRef = _firestore
+                  .collection('hotels')
+                  .doc(hotelId)
+                  .collection('images');
+
+              if (isEditing) {
+                await imagesRef.doc(image.id).update(data);
+              } else {
+                await imagesRef.add(data);
+              }
+
+              if (mounted) Navigator.pop(context);
+            },
+            child: Text(isEditing ? 'Update' : 'Add'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _manageImages(Hotel hotel) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.7,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text('Images: ${hotel.hotelName}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add_a_photo, color: Colors.blue),
+                    onPressed: () => _showImageDialog(hotel.id),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: _firestore
+                    .collection('hotels')
+                    .doc(hotel.id)
+                    .collection('images')
+                    .orderBy('sortOrder')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                  final docs = snapshot.data!.docs;
+                  return ListView.builder(
+                    itemCount: docs.length,
+                    itemBuilder: (context, index) {
+                      final doc = docs[index];
+                      final data = doc.data() as Map<String, dynamic>;
+                      final img = HotelImage(
+                        id: doc.id,
+                        imagePath: data['imagePath'] ?? '',
+                        sortOrder: data['sortOrder'] ?? 0,
+                        createdAt: data['createdAt'] ?? Timestamp.now(),
+                      );
+                      return ListTile(
+                        leading: CircleAvatar(child: Text(img.sortOrder.toString())),
+                        title: Text(img.imagePath),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, size: 20),
+                              onPressed: () => _showImageDialog(hotel.id, img),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                              onPressed: () => _firestore
+                                  .collection('hotels')
+                                  .doc(hotel.id)
+                                  .collection('images')
+                                  .doc(img.id)
+                                  .delete(),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _deleteHotel(String id) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -199,6 +336,10 @@ class _HotelManagerScreenState extends State<HotelManagerScreen> {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    IconButton(
+                      icon: const Icon(Icons.image, color: Colors.orange),
+                      onPressed: () => _manageImages(hotel),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.edit, color: Colors.blue),
                       onPressed: () => _showHotelDialog(hotel),
