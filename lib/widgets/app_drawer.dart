@@ -6,7 +6,7 @@ import '../screen/config_screen.dart';
 import '../screen/product_list_screen.dart';
 import '../screen/product_grid_screen.dart';
 import '../screen/product_table_screen.dart';
-import '../screen/hotel_manager_screen.dart';
+import '../screen/admin_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -131,18 +131,18 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           const Divider(),
-          // Firebase Section
+          // Admin Dashboard
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                Icon(Icons.cloud, color: Colors.orange, size: 20),
+                Icon(Icons.admin_panel_settings, color: Colors.deepPurple, size: 20),
                 SizedBox(width: 8),
                 Text(
-                  'Firebase Firestore',
+                  'Admin Management',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.orange,
+                    color: Colors.deepPurple,
                     fontSize: 14,
                   ),
                 ),
@@ -150,14 +150,14 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.hotel, color: Colors.orange),
-            title: const Text('Quản lý Khách sạn'),
+            leading: const Icon(Icons.dashboard, color: Colors.deepPurple),
+            title: const Text('Dashboard'),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const HotelManagerScreen(),
+                  builder: (context) => const AdminScreen(),
                 ),
               );
             },
