@@ -6,6 +6,7 @@ import '../screen/config_screen.dart';
 import '../screen/product_list_screen.dart';
 import '../screen/product_grid_screen.dart';
 import '../screen/product_table_screen.dart';
+import '../screen/hotel_manager_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -130,25 +131,6 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           const Divider(),
-          // SQLite Section
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                Icon(Icons.storage, color: Colors.blue, size: 20),
-                SizedBox(width: 8),
-                Text(
-                  'SQLite Database',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(),
           // Firebase Section
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -167,19 +149,32 @@ class AppDrawer extends StatelessWidget {
               ],
             ),
           ),
+          ListTile(
+            leading: const Icon(Icons.hotel, color: Colors.orange),
+            title: const Text('Quản lý Khách sạn'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HotelManagerScreen(),
+                ),
+              );
+            },
+          ),
           const Divider(),
-          // Product Display Section
+          // SQLite Section
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                Icon(Icons.view_list, color: Colors.green, size: 20),
+                Icon(Icons.storage, color: Colors.blue, size: 20),
                 SizedBox(width: 8),
                 Text(
-                  'Hiển thị sản phẩm',
+                  'SQLite Database',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.green,
+                    color: Colors.blue,
                     fontSize: 14,
                   ),
                 ),
