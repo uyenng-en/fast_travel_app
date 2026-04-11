@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'hotel_manager_screen.dart';
 import 'room_type_manager_screen.dart';
 import 'hotel_review_manager_screen.dart';
+import 'user_manager_screen.dart';
 import '../widgets/app_drawer.dart';
 
 class AdminScreen extends StatelessWidget {
@@ -42,7 +43,13 @@ class AdminScreen extends StatelessWidget {
               Colors.orange,
               const HotelReviewManagerScreen(),
             ),
-            // You can add more management cards here as needed
+            _buildAdminCard(
+              context,
+              'User & Notif',
+              Icons.people,
+              Colors.deepPurple,
+              const UserManagerScreen(),
+            ),
           ],
         ),
       ),
@@ -67,6 +74,7 @@ class AdminScreen extends StatelessWidget {
           );
         },
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 48, color: color),
