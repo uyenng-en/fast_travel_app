@@ -1,0 +1,109 @@
+{
+  "cities": [
+    {
+      "id": 1,
+      "name": "Thành phố Hồ Chí Minh",
+      "region": "Miền Nam",
+      "latitude": 10.8231,
+      "longitude": 106.6297
+    },
+    {
+      "id": 2,
+      "name": "Hà Nội",
+      "region": "Miền Bắc",
+      "latitude": 21.0285,
+      "longitude": 105.8542
+    },
+    {
+      "id": 3,
+      "name": "Đà Nẵng",
+      "region": "Miền Trung",
+      "latitude": 16.0544,
+      "longitude": 108.2022
+    },
+    {
+      "id": 4,
+      "name": "Hải Phòng",
+      "region": "Miền Bắc",
+      "latitude": 20.8449,
+      "longitude": 106.6881
+    },
+    {
+      "id": 5,
+      "name": "Cần Thơ",
+      "region": "Miền Nam",
+      "latitude": 10.0452,
+      "longitude": 105.7469
+    },
+    {
+      "id": 6,
+      "name": "Nha Trang",
+      "region": "Miền Trung",
+      "latitude": 12.2388,
+      "longitude": 109.1967
+    },
+    {
+      "id": 7,
+      "name": "Huế",
+      "region": "Miền Trung",
+      "latitude": 16.4637,
+      "longitude": 107.5909
+    },
+    {
+      "id": 8,
+      "name": "Vũng Tàu",
+      "region": "Miền Nam",
+      "latitude": 10.4114,
+      "longitude": 107.1362
+    },
+    {
+      "id": 9,
+      "name": "Đà Lạt",
+      "region": "Tây Nguyên",
+      "latitude": 11.9404,
+      "longitude": 108.4583
+    },
+    {
+      "id": 10,
+      "name": "Quy Nhơn",
+      "region": "Miền Trung",
+      "latitude": 13.7820,
+      "longitude": 109.2197
+    },
+    {
+      "id": 11,
+      "name": "Biên Hòa",
+      "region": "Miền Nam",
+      "latitude": 10.9574,
+      "longitude": 106.8426
+    },
+    {
+      "id": 12,
+      "name": "Buôn Ma Thuột",
+      "region": "Tây Nguyên",
+      "latitude": 12.6667,
+      "longitude": 108.0500
+    },
+    {
+      "id": 13,
+      "name": "Rạch Giá",
+      "region": "Miền Nam",
+      "latitude": 10.0125,
+      "longitude": 105.0809
+    },
+    {
+      "id": 14,
+      "name": "Long Xuyên",
+      "region": "Miền Nam",
+      "latitude": 10.3860,
+      "longitude": 105.4350
+    },
+    {
+      "id": 15,
+      "name": "Thái Nguyên",
+      "region": "Miền Bắc",
+      "latitude": 21.5942,
+      "longitude": 105.8482
+    }
+  ]
+}

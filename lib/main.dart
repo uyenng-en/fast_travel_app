@@ -35,8 +35,8 @@ class MyApp extends StatelessWidget {
         '/room_type_manager': (context) => const RoomTypeManagerScreen(),
         '/review_manager': (context) => const HotelReviewManagerScreen(),
       },
-      // home: const HomeScreen(),
-      home: const AdminScreen(),
+      home: const HomeScreen(),
+      // home: const AdminScreen(),
     );
   }
 }
