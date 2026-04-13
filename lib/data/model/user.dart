@@ -5,6 +5,7 @@ class AppUser {
   final String? firstName;
   final String? lastName;
   final String email;
+  final String password;
   final String phoneNumber;
   final Timestamp createdAt;
   final Timestamp updatedAt;
@@ -14,6 +15,7 @@ class AppUser {
     required this.firstName,
     required this.lastName,
     required this.email,
+    required this.password,
     required this.phoneNumber,
     required this.createdAt,
     required this.updatedAt,
@@ -28,9 +30,10 @@ class AppUser {
       firstName: data['firstName'],
       lastName: data['lastName'],
       email: data['email'],
-      phoneNumber: data['phoneNumber'],
-      createdAt: data['createdAt'],
-      updatedAt: data['updatedAt'],
+      password: data['password'] ?? '',
+      phoneNumber: data['phoneNumber'] ?? '',
+      createdAt: data['createdAt'] ?? Timestamp.now(),
+      updatedAt: data['updatedAt'] ?? Timestamp.now(),
     );
   }
 
@@ -38,6 +41,7 @@ class AppUser {
     'firstName': firstName,
     'lastName': lastName,
     'email': email,
+    'password': password,
     'phoneNumber': phoneNumber,
     'createdAt': createdAt,
     'updatedAt': updatedAt,

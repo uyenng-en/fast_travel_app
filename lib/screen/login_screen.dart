@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'register_screen.dart';
 import 'home_screen.dart';
+import 'admin_screen.dart';
 import '../config/default.dart';
 
 class Login extends StatefulWidget {
@@ -16,6 +18,7 @@ class _LoginState extends State<Login> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -28,50 +31,139 @@ class _LoginState extends State<Login> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Register(
-          // onRegisterComplete: (userInfo) {
-          //   Navigator.pop(context);
-          // },
-        ),
+        builder: (context) => const Register(),
       ),
     );
   }
 
-  void _login() async {
-    if (_formKey.currentState!.validate()) {
-      final prefs = await SharedPreferences.getInstance();
+  Future<void> _handleSocialSignIn(String email, String name, String provider) async {
+    setState(() {
+      _isLoading = true;
+    });
 
-      final savedEmail = prefs.getString('email') ?? '';
-      final savedPassword = prefs.getString('password') ?? '';
-      if (savedEmail.isNotEmpty && savedPassword.isNotEmpty) {
-        if (savedEmail == _emailController.text &&
-            savedPassword == _passwordController.text) {
-          final userInfo = {
-            'name': prefs.getString('name') ?? 'User',
-            'email': prefs.getString('email') ?? '',
-            'phone': prefs.getString('phone') ?? '',
-            'imageUrl': prefs.getString('imageUrl') ?? '',
-            'gender': prefs.getInt('gender') ?? 0,
-            'likeMusic': prefs.getBool('likeMusic') ?? false,
-            'likeMovie': prefs.getBool('likeMovie') ?? false,
-            'likeBook': prefs.getBool('likeBook') ?? false,
-          };
-          await prefs.setString('currentUser', _emailController.text);
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => HomeScreen()),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
-        }
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+
+      String userId;
+      String role = 'user';
+
+      if (querySnapshot.docs.isEmpty) {
+        final newUserRef = await FirebaseFirestore.instance.collection('users').add({
+          'email': email,
+          'name': name,
+          'role': 'user',
+          'provider': provider,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        userId = newUserRef.id;
+      } else {
+        userId = querySnapshot.docs.first.id;
+        role = querySnapshot.docs.first.data()['role'] ?? 'user';
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('currentUser', email);
+      await prefs.setString('userId', userId);
+      await prefs.setString('role', role);
+      await prefs.setString('name', name);
+
+      if (!mounted) return;
+
+      if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminScreen()),
+        );
       } else {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
         );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Đã xảy ra lỗi khi đăng nhập với $provider: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _loginWithGoogle() async {
+    await _handleSocialSignIn("user.google@gmail.com", "Google User", "google");
+  }
+
+  void _loginWithFacebook() async {
+    await _handleSocialSignIn("user.facebook@gmail.com", "Facebook User", "facebook");
+  }
+
+  void _login() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final email = _emailController.text.trim();
+        final password = _passwordController.text.trim();
+
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .where('email', isEqualTo: email)
+            .where('password', isEqualTo: password)
+            .limit(1)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          final userData = querySnapshot.docs.first.data();
+          final String role = userData['role'] ?? 'user';
+          final String userId = querySnapshot.docs.first.id;
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('currentUser', email);
+          await prefs.setString('userId', userId);
+          await prefs.setString('role', role);
+          await prefs.setString('name', userData['name'] ?? '');
+
+          if (!mounted) return;
+
+          if (role == 'admin') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminScreen()),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          }
+        } else {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Tài khoản hoặc mật khẩu không chính xác')),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Đã xảy ra lỗi: $e')),
+        );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -106,8 +198,8 @@ class _LoginState extends State<Login> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
-                      labelText: 'Tài khoản',
-                      hintText: 'Nhập tài khoản...',
+                      labelText: 'Email',
+                      hintText: 'Nhập email của bạn...',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -127,7 +219,11 @@ class _LoginState extends State<Login> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập tài khoản';
+                        return 'Vui lòng nhập email';
+                      }
+                      final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                      if (!emailRegExp.hasMatch(value)) {
+                        return 'Định dạng email không hợp lệ';
                       }
                       return null;
                     },
@@ -139,6 +235,16 @@ class _LoginState extends State<Login> {
                     decoration: InputDecoration(
                       labelText: 'Mật khẩu',
                       hintText: 'Nhập mật khẩu của bạn',
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -160,14 +266,17 @@ class _LoginState extends State<Login> {
                       if (value == null || value.isEmpty) {
                         return 'Vui lòng nhập mật khẩu';
                       }
+                      if (value.length < 6) {
+                        return 'Mật khẩu phải có ít nhất 6 ký tự';
+                      }
                       return null;
                     },
                   ),
                   const SizedBox(height: 24),
-                  Text('Quên mật khẩu ?', textAlign: TextAlign.right),
+                  const Text('Quên mật khẩu ?', textAlign: TextAlign.right),
                   const SizedBox(height: 30),
                   ElevatedButton(
-                    onPressed: _login,
+                    onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -175,18 +284,20 @@ class _LoginState extends State<Login> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    child: const Text(
-                      'Đăng nhập',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            'Đăng nhập',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _isLoading ? null : _loginWithGoogle,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -199,31 +310,30 @@ class _LoginState extends State<Login> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Container(
-                          margin: EdgeInsets.only(left: 20),
+                          margin: const EdgeInsets.only(left: 20),
                           child: Image.asset(
                             "assets/images/img_google.jpg",
                             width: 30,
                             height: 30,
                           ),
                         ),
-                        Container(
-                          margin: EdgeInsets.only(left: 100),
+                        const Expanded(
                           child: Text(
                             'Đăng nhập bằng Google',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.black,
-                              fontFamily: fontFamilyPrimary,
                             ),
                             textAlign: TextAlign.center,
                           ),
                         ),
+                        const SizedBox(width: 50),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _isLoading ? null : _loginWithFacebook,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -236,25 +346,24 @@ class _LoginState extends State<Login> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Container(
-                          margin: EdgeInsets.only(left: 20),
+                          margin: const EdgeInsets.only(left: 20),
                           child: Image.asset(
                             "assets/images/img_facebook.jpg",
                             width: 30,
                             height: 30,
                           ),
                         ),
-                        Container(
-                          margin: EdgeInsets.only(left: 100),
+                        const Expanded(
                           child: Text(
                             'Đăng nhập bằng Facebook',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.black,
-                              fontFamily: fontFamilyPrimary,
                             ),
                             textAlign: TextAlign.center,
                           ),
                         ),
+                        const SizedBox(width: 50),
                       ],
                     ),
                   ),

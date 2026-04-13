@@ -2,30 +2,57 @@ import 'package:fast_travel_app/config/default.dart';
 import 'package:fast_travel_app/widgets/sub_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'detailed_info_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   final double iconSize;
   const ProfileScreen({super.key, this.iconSize = 24});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String userName = 'Họ tên';
+  String userEmail = '';
+  String userPhone = 'Chưa cập nhật';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userName = prefs.getString('name') ?? 'Họ tên';
+      userEmail = prefs.getString('currentUser') ?? 'email@example.com';
+      // If phoneNumber was saved during login/register, we could load it here.
+      // For now, using a placeholder or we could fetch it from Firestore if needed.
+    });
+  }
 
   Widget _profileHeader(BuildContext context) {
     return Row(
       children: [
         // Avatar
-        CircleAvatar(
+        const CircleAvatar(
           radius: 28,
-          backgroundImage: const AssetImage('assets/images/img_avatar.jpg'),
+          backgroundImage: AssetImage('assets/images/img_avatar.jpg'),
         ),
         const SizedBox(width: 12),
         // Name + Bio
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
-              'Họ tên',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              userName,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
-            SizedBox(height: 4),
-            Text('Bio', style: TextStyle(fontSize: 13, color: Colors.black54)),
+            const SizedBox(height: 4),
+            Text(userEmail, style: const TextStyle(fontSize: 13, color: Colors.black54)),
           ],
         ),
       ],
@@ -57,10 +84,9 @@ class ProfileScreen extends StatelessWidget {
         child: Center(
           child: SvgPicture.asset(
             asset,
-            width: iconSize,
-            height: iconSize,
-            // tint the svg; if this doesn't work, edit the svg to use `currentColor`
-            color: Colors.black54,
+            width: widget.iconSize,
+            height: widget.iconSize,
+            colorFilter: const ColorFilter.mode(Colors.black54, BlendMode.srcIn),
           ),
         ),
       ),
@@ -135,7 +161,19 @@ class ProfileScreen extends StatelessWidget {
                       _settingsTileAcc(
                         asset: "assets/images/ic_acc_page_account.svg",
                         title: 'Quản lý tài khoản',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DetailedInfoScreen(
+                                name: userName,
+                                imageUrl: 'assets/images/img_avatar.jpg',
+                                email: userEmail,
+                                phone: userPhone,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                       _settingsTileAcc(
                         asset: "assets/images/ic_acc_page_lock.svg",

@@ -18,6 +18,7 @@ class _UserManagerScreenState extends State<UserManagerScreen> {
     final firstNameController = TextEditingController(text: user?.firstName ?? '');
     final lastNameController = TextEditingController(text: user?.lastName ?? '');
     final emailController = TextEditingController(text: user?.email ?? '');
+    final passwordController = TextEditingController(text: user?.password ?? '');
     final phoneController = TextEditingController(text: user?.phoneNumber ?? '');
 
     showDialog(
@@ -42,6 +43,11 @@ class _UserManagerScreenState extends State<UserManagerScreen> {
                 keyboardType: TextInputType.emailAddress,
               ),
               TextField(
+                controller: passwordController,
+                decoration: const InputDecoration(labelText: 'Password'),
+                obscureText: true,
+              ),
+              TextField(
                 controller: phoneController,
                 decoration: const InputDecoration(labelText: 'Phone Number'),
                 keyboardType: TextInputType.phone,
@@ -60,6 +66,7 @@ class _UserManagerScreenState extends State<UserManagerScreen> {
                 'firstName': firstNameController.text,
                 'lastName': lastNameController.text,
                 'email': emailController.text,
+                'password': passwordController.text,
                 'phoneNumber': phoneController.text,
                 'updatedAt': FieldValue.serverTimestamp(),
               };

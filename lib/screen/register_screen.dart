@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
@@ -13,65 +14,94 @@ class Register extends StatefulWidget {
 
 class _RegisterState extends State<Register> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _phoneController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
-  void _goToRegister() {
-    Navigator.push(
+  void _goToLogin() {
+    Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (context) => Register(
-          // onRegisterComplete: (userInfo) {
-          //   Navigator.pop(context);
-          // },
-        ),
-      ),
+      MaterialPageRoute(builder: (context) => const Login()),
     );
   }
 
-  void _Register() async {
+  void _register() async {
     if (_formKey.currentState!.validate()) {
-      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        _isLoading = true;
+      });
 
-      final savedEmail = prefs.getString('email') ?? '';
-      final savedPassword = prefs.getString('password') ?? '';
-      if (savedEmail.isNotEmpty && savedPassword.isNotEmpty) {
-        if (savedEmail == _emailController.text &&
-            savedPassword == _passwordController.text) {
-          final userInfo = {
-            'name': prefs.getString('name') ?? 'User',
-            'email': prefs.getString('email') ?? '',
-            'phone': prefs.getString('phone') ?? '',
-            'imageUrl': prefs.getString('imageUrl') ?? '',
-            'gender': prefs.getInt('gender') ?? 0,
-            'likeMusic': prefs.getBool('likeMusic') ?? false,
-            'likeMovie': prefs.getBool('likeMovie') ?? false,
-            'likeBook': prefs.getBool('likeBook') ?? false,
-          };
-          await prefs.setString('currentUser', _emailController.text);
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => HomeScreen()),
+      try {
+        final email = _emailController.text.trim();
+        final password = _passwordController.text.trim();
+        final name = _nameController.text.trim();
+        final phone = _phoneController.text.trim();
+
+        // Check if email already exists
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .where('email', isEqualTo: email)
+            .limit(1)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Email đã tồn tại')),
           );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
+          return;
         }
-      } else {
+
+        // Add user to Firestore
+        final newUserRef = await FirebaseFirestore.instance.collection('users').add({
+          'email': email,
+          'password': password,
+          'name': name,
+          'phoneNumber': phone,
+          'role': 'user',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('currentUser', email);
+        await prefs.setString('userId', newUserRef.id);
+        await prefs.setString('role', 'user');
+        await prefs.setString('name', name);
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đăng ký thành công!')),
+        );
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
         );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Đã xảy ra lỗi: $e')),
+        );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -103,34 +133,36 @@ class _RegisterState extends State<Register> {
                   ),
                   const SizedBox(height: 32),
                   TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
+                    controller: _nameController,
                     decoration: InputDecoration(
-                      labelText: 'Mail',
-                      hintText: 'Nhập email',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
+                      labelText: 'Họ và tên',
+                      hintText: 'Nhập họ và tên',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
                         borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
-                      focusedBorder: OutlineInputBorder(
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    validator: (value) => (value == null || value.isEmpty) ? 'Vui lòng nhập họ tên' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      hintText: 'Nhập email',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                      enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
-                        borderSide: const BorderSide(
-                          color: Colors.blue,
-                          width: 2,
-                        ),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
                       filled: true,
                       fillColor: Colors.white,
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập tài khoản';
-                      }
-                      return null;
-                    },
+                    validator: (value) => (value == null || !value.contains('@')) ? 'Email không hợp lệ' : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -138,126 +170,75 @@ class _RegisterState extends State<Register> {
                     obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
                       labelText: 'Mật khẩu',
-                      hintText: 'Nhập mật khẩu của bạn',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
+                      hintText: 'Nhập mật khẩu',
+                      suffixIcon: IconButton(
+                        icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
                       ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
                         borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: const BorderSide(
-                          color: Colors.blue,
-                          width: 2,
-                        ),
-                      ),
                       filled: true,
                       fillColor: Colors.white,
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập mật khẩu';
-                      }
-                      return null;
-                    },
+                    validator: (value) => (value == null || value.length < 6) ? 'Mật khẩu phải ít nhất 6 ký tự' : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
-                    controller: _passwordController,
+                    controller: _confirmPasswordController,
                     obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
                       labelText: 'Nhập lại mật khẩu',
-                      hintText: 'Nhập lại mật khẩu của bạn',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
+                      hintText: 'Nhập lại mật khẩu',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
                         borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: const BorderSide(
-                          color: Colors.blue,
-                          width: 2,
-                        ),
-                      ),
                       filled: true,
                       fillColor: Colors.white,
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập lại mật khẩu';
-                      }
-                      return null;
-                    },
+                    validator: (value) => (value != _passwordController.text) ? 'Mật khẩu không khớp' : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
-                    controller: _passwordController,
-                    obscureText: !_isPasswordVisible,
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
                     decoration: InputDecoration(
                       labelText: 'Số điện thoại',
-                      hintText: 'Nhập số điện thoại của bạn',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
+                      hintText: 'Nhập số điện thoại',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
                         borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: const BorderSide(
-                          color: Colors.blue,
-                          width: 2,
-                        ),
-                      ),
                       filled: true,
                       fillColor: Colors.white,
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập số điện thoại';
-                      }
-                      return null;
-                    },
+                    validator: (value) => (value == null || value.isEmpty) ? 'Vui lòng nhập số điện thoại' : null,
                   ),
                   const SizedBox(height: 30),
                   ElevatedButton(
-                    onPressed: _Register,
+                    onPressed: _isLoading ? null : _register,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                     ),
-                    child: const Text(
-                      'Đăng ký',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Đăng ký', style: TextStyle(fontSize: 20, color: Colors.white)),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        'Đã có tài khoản? Hãy',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
+                      const Text('Đã có tài khoản? Hãy', style: TextStyle(fontSize: 14, color: Colors.grey)),
                       TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          'Đăng nhập',
-                          style: TextStyle(fontSize: 14, color: Colors.blue),
-                        ),
+                        onPressed: _goToLogin,
+                        child: const Text('Đăng nhập', style: TextStyle(fontSize: 14, color: Colors.blue)),
                       ),
                     ],
                   ),
