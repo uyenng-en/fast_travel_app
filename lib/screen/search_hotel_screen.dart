@@ -1,111 +1,135 @@
+// ---- COPY TỪ ĐÂY ĐỂ THAY THẾ PHẦN ĐẦU CỦA FILE search_hotel_screen.dart ----
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fast_travel_app/data/model/hotel.dart';
 import 'package:fast_travel_app/widgets/hotel_card.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; 
+import '../config/default.dart';
+import '../widgets/main_app_bar.dart';
+import '../screen/room_detail.dart'; 
 
 class SearchHotelScreen extends StatefulWidget {
   final String destination;
-  final DateTimeRange? dateRange;
+  final DateTimeRange? dateRange; 
+  
+  // --- THÊM 3 BIẾN NÀY ĐỂ HỨNG DỮ LIỆU ---
+  final int rooms;
+  final int adults;
+  final int children;
 
   const SearchHotelScreen({
     super.key,
     this.destination = 'Đà Lạt',
     this.dateRange,
+    // --- THÊM 3 DÒNG NÀY ĐỂ NHẬN GIÁ TRỊ TRUYỀN TỚI ---
+    this.rooms = 1,
+    this.adults = 2,
+    this.children = 0,
   });
 
   @override
   State<SearchHotelScreen> createState() => _SearchHotelScreenState();
 }
+// ---- KẾT THÚC PHẦN COPY BƯỚC 1 ----
 
 class _SearchHotelScreenState extends State<SearchHotelScreen> {
+  
+  // Hàm để tạo chuỗi hiển thị ngày: "24 thg 2 - 26 thg 2"
+  String _formatDateRange(DateTimeRange? range) {
+    if (range == null) return "Chọn ngày";
+    final start = range.start;
+    final end = range.end;
+    return "${start.day} thg ${start.month} - ${end.day} thg ${end.month}";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
+      appBar: const MainAppBar(),
+      body: Stack(
         children: [
-          _buildHeader(context),
-          _buildFilterBar(),
-          const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
-          Expanded(
-            child: _buildHotelList(),
+          Column(
+            children: [
+              const SizedBox(height: 40),
+              _buildFilterBar(),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
+              Expanded(
+                child: _buildHotelList(),
+              ),
+            ],
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _buildSearchOverlay(context),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-      ),
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Color(0xFF2B5296),
-      ),
-      child: Column(
-        children: [
-          const Text(
-            'FASTRAVEL',
-            style: TextStyle(
-              color: Color(0xFFFFC107),
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
+  Widget _buildSearchOverlay(BuildContext context) {
+    return Stack(
+      alignment: Alignment.topCenter,
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          height: 30,
+          width: double.infinity,
+          color: colorPrimary,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            height: 48,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 6), // Đổ bóng xuống đáy nhiều hơn theo yêu cầu trước
+                )
+              ],
             ),
-          ),
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              height: 55,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  )
-                ],
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.black, size: 24),
-                    onPressed: () => Navigator.pop(context),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      '${widget.destination} - 24 thg 2 - 26 thg 2',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black, size: 24),
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    '${widget.destination} - ${_formatDateRange(widget.dateRange)}', // Hiển thị ngày dynamic ở đây
+                    style: TextStyle(
+                      fontFamily: fontFamilyPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
+  // ... Giữ nguyên các hàm _buildFilterBar, _filterItem và _buildHotelList ...
   Widget _buildFilterBar() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 14),
+      padding: const EdgeInsets.only(top: 14, bottom: 14),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -120,7 +144,8 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
   Widget _filterItem(String label) {
     return Text(
       label,
-      style: const TextStyle(
+      style: TextStyle(
+        fontFamily: fontFamilyPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w500,
         color: Colors.black,
@@ -130,22 +155,15 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
 
   Widget _buildHotelList() {
     return StreamBuilder<QuerySnapshot>(
-      // Filter by city to show relevant results
       stream: FirebaseFirestore.instance
           .collection('hotels')
           .where('city', isEqualTo: widget.destination)
           .snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Center(child: Text('Đã xảy ra lỗi: ${snapshot.error}'));
-        }
-        
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+        if (snapshot.hasError) return Center(child: Text('Đã xảy ra lỗi: ${snapshot.error}'));
+        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
 
         final docs = snapshot.data?.docs ?? [];
-
         if (docs.isEmpty) {
           return Center(
             child: Column(
@@ -153,9 +171,8 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
               children: [
                 Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
                 const SizedBox(height: 16),
-                Text(
-                  'Không tìm thấy chỗ nghỉ nào tại ${widget.destination}',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                Text('Không tìm thấy chỗ nghỉ nào tại ${widget.destination}',
+                  style: TextStyle(fontFamily: fontFamilyPrimary, color: Colors.grey[600], fontSize: 16),
                 ),
               ],
             ),
@@ -169,23 +186,40 @@ class _SearchHotelScreenState extends State<SearchHotelScreen> {
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
               child: Text(
                 '${docs.length} chỗ nghỉ',
-                style: const TextStyle(
+                style: TextStyle(
+                  fontFamily: fontFamilyPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),
             ),
-            ...docs.map((doc) {
-              try {
-                final hotel = Hotel.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>);
-                return HotelCard(hotel: hotel);
-              } catch (e) {
-                // If a specific document fails to parse, skip it and print the error
-                debugPrint('Error parsing hotel ${doc.id}: $e');
-                return const SizedBox.shrink();
-              }
-            }).toList(),
+           ...docs.map((doc) {
+                try {
+                  final hotel = Hotel.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>);
+                  
+                  return InkWell(
+                    onTap: () {
+                      // CHUYỂN TRANG TẠI ĐÂY ĐỂ TRUYỀN ĐƯỢC widget.dateRange
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RoomDetailScreen(
+                            hotel: hotel,
+                            dateRange: widget.dateRange, // Lấy ngày từ SearchHotelScreen truyền sang
+                            rooms: widget.rooms, 
+                            adults: widget.adults,
+                            children: widget.children,
+                          ),
+                        ),
+                      );
+                    },
+                    child: HotelCard(hotel: hotel), // Bọc cái card lại để nhấn vào là đi tiếp
+                  );
+                } catch (e) {
+                  return const SizedBox.shrink();
+                }
+              }).toList(),
             const SizedBox(height: 20),
           ],
         );

@@ -18,7 +18,12 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   DateTimeRange? selectedDateRange;
   String destination = "Đà Lạt";
-  String guests = "1 phòng - 2 người lớn - 0 trẻ em";
+  
+  // Các biến thêm mới để quản lý số lượng
+  int rooms = 1;
+  int adults = 2;
+  int children = 0;
+
   String? lastSearchDestination;
   String? lastSearchInfo;
 
@@ -32,7 +37,10 @@ class _SearchScreenState extends State<SearchScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       destination = prefs.getString('destination') ?? "Đà Lạt";
-      guests = prefs.getString('guests') ?? "1 phòng - 2 người lớn - 0 trẻ em";
+      // Load thêm các giá trị từ prefs nếu có
+      rooms = prefs.getInt('rooms') ?? 1;
+      adults = prefs.getInt('adults') ?? 2;
+      children = prefs.getInt('children') ?? 0;
       
       final startStr = prefs.getString('startDate');
       final endStr = prefs.getString('endDate');
@@ -51,20 +59,107 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<void> _saveSearchData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('destination', destination);
-    await prefs.setString('guests', guests);
+    // Lưu thêm các giá trị số lượng
+    await prefs.setInt('rooms', rooms);
+    await prefs.setInt('adults', adults);
+    await prefs.setInt('children', children);
+
     if (selectedDateRange != null) {
       await prefs.setString('startDate', selectedDateRange!.start.toIso8601String());
       await prefs.setString('endDate', selectedDateRange!.end.toIso8601String());
     }
 
-    // Save as "Recent Search"
     await prefs.setString('lastDestination', destination);
     String info = "";
     if (selectedDateRange != null) {
       info = "${selectedDateRange!.start.day}/${selectedDateRange!.start.month} - ${selectedDateRange!.end.day}/${selectedDateRange!.end.month}, ";
     }
-    info += guests.split('-')[1].trim(); // Extracting "2 người lớn" part roughly
+    info += "$adults người lớn"; 
     await prefs.setString('lastInfo', info);
+  }
+
+  // Hàm hiển thị bảng chọn khách (BottomSheet)
+  void _showGuestPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Chọn số phòng và khách",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildGuestOption("Số phòng", rooms, (val) {
+                    setModalState(() => rooms = val);
+                    setState(() {});
+                  }),
+                  _buildGuestOption("Người lớn", adults, (val) {
+                    setModalState(() => adults = val);
+                    setState(() {});
+                  }),
+                  _buildGuestOption("Trẻ em", children, (val) {
+                    setModalState(() => children = val);
+                    setState(() {});
+                  }),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 45,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2B5296),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Text("Xác nhận", style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Widget con cho từng hàng trong GuestPicker
+  Widget _buildGuestOption(String title, int value, Function(int) onChange) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 16)),
+          Row(
+            children: [
+              IconButton(
+                onPressed: value > (title == "Trẻ em" ? 0 : 1) ? () => onChange(value - 1) : null,
+                icon: const Icon(Icons.remove_circle_outline, color: Colors.blue),
+              ),
+              Container(
+                constraints: const BoxConstraints(minWidth: 30),
+                alignment: Alignment.center,
+                child: Text("$value", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+              IconButton(
+                onPressed: () => onChange(value + 1),
+                icon: const Icon(Icons.add_circle_outline, color: Colors.blue),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -104,7 +199,9 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
+            _buildHeader(
+              
+            ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -196,10 +293,15 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
               ),
               const SizedBox(height: 8),
+              // ĐÃ SỬA: Bọc InkWell để mở Guest Picker
               _buildSearchCard(
-                child: _buildSearchInput(
-                    Icons.person, guests,
-                    showArrow: true),
+                child: InkWell(
+                  onTap: () => _showGuestPicker(context),
+                  child: _buildSearchInput(
+                      Icons.person, 
+                      "$rooms phòng - $adults người lớn - $children trẻ em",
+                      showArrow: true),
+                ),
               ),
               const SizedBox(height: 12),
               SizedBox(
@@ -214,6 +316,10 @@ class _SearchScreenState extends State<SearchScreen> {
                       MaterialPageRoute(
                         builder: (context) => SearchHotelScreen(
                           destination: destination,
+                          dateRange: selectedDateRange,
+                          rooms: rooms,
+                          adults: adults,
+                          children: children,
                         ),
                       ),
                     );
@@ -259,7 +365,8 @@ class _SearchScreenState extends State<SearchScreen> {
           const SizedBox(width: 12),
           Expanded(
               child: Text(text,
-                  style: const TextStyle(fontSize: 15, color: Colors.black87))),
+                  style: const TextStyle(fontSize: 15, color: Colors.black87),
+                  overflow: TextOverflow.ellipsis)), // Thêm ellipsis để tránh tràn chữ
           if (showTarget)
             Icon(Icons.gps_fixed, color: Colors.blue[900], size: 20),
           if (showArrow)

@@ -1,3 +1,5 @@
+// file: lib/widgets/hotel_card.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fast_travel_app/data/model/hotel.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +21,7 @@ class HotelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // KHÔNG CÓ InkWell HAY Navigator.push NÀO Ở ĐÂY NỮA
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       decoration: BoxDecoration(
@@ -38,26 +41,19 @@ class HotelCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Left: Hotel Image
               _buildImageSection(),
               const SizedBox(width: 12),
-              // Right: Hotel Details
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Text(
                             hotel.hotelName,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -81,6 +77,7 @@ class HotelCard extends StatelessWidget {
     );
   }
 
+  // ... Giữ nguyên các hàm _buildImageSection, _buildRatingSection, v.v. bên dưới của bạn ...
   Widget _buildImageSection() {
     return FutureBuilder<QuerySnapshot>(
       future: FirebaseFirestore.instance
