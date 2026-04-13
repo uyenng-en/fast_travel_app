@@ -62,31 +62,35 @@ class FinishedBookingCard extends StatelessWidget {
             const SizedBox(height: 12),
 
             /// Check in / check out
-            Row(
+           Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Nhận phòng",
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                    Text(checkIn),
-                  ],
+                // 1. Bọc cột Nhận phòng vào Expanded
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Nhận phòng", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      Text(checkIn, style: TextStyle(fontSize: 14)),
+                    ],
+                  ),
+                ),
+                
+                // 2. Phần dấu gạch ngang ở giữa
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Text("— — — — —", style: TextStyle(color: Colors.grey)),
                 ),
 
-                const Text("— — — — —"),
-
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Trả phòng",
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                    Text(checkOut),
-                  ],
+                // 3. Bọc cột Trả phòng vào Expanded
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Trả phòng", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      Text(checkOut, style: TextStyle(fontSize: 14)),
+                    ],
+                  ),
                 ),
               ],
             ),

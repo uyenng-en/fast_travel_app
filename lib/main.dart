@@ -11,10 +11,15 @@ import 'screen/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'screen/welcome_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:intl/date_symbol_data_local.dart'; // 1. THÊM IMPORT NÀY
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  
+  // 2. KHỞI TẠO DỮ LIỆU NGÔN NGỮ TIẾNG VIỆT
+  await initializeDateFormatting('vi_VN', null); 
+  
   runApp(const MyApp());
 }
 
@@ -25,6 +30,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'My app Flutter',
+      debugShowCheckedModeBanner: false, // Tắt cái nhãn debug cho đẹp
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -39,9 +45,8 @@ class MyApp extends StatelessWidget {
         '/room_type_manager': (context) => const RoomTypeManagerScreen(),
         '/review_manager': (context) => const HotelReviewManagerScreen(),
       },
-      // home: const HomeScreen(),
+      home: const HomeScreen(),
       // home: const AdminScreen(),
-      home: const Login()
     );
   }
 }
