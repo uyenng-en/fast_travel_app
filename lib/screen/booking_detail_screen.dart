@@ -273,7 +273,7 @@ class BookingDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      
       appBar: const MainAppBar(),
       body: SingleChildScrollView(
         child: Column(

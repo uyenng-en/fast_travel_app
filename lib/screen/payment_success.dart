@@ -1,3 +1,4 @@
+import 'package:fast_travel_app/screen/home_screen.dart';
 import 'package:flutter/material.dart';
 import '../config/default.dart';
 import '../widgets/main_app_bar.dart';
@@ -124,9 +125,12 @@ class BookingSuccessScreen extends StatelessWidget {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Quay về màn hình đầu tiên (SearchScreen)
-                    Navigator.of(context).popUntil((route) => route.isFirst);
-                  },
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()), // Thay HomeScreen bằng tên class trang chủ của bạn
+                    (Route<dynamic> route) => false, // Xóa sạch các route trước đó
+                  );
+                },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorPrimary, // Dùng màu từ default.dart
                     shape: RoundedRectangleBorder(
