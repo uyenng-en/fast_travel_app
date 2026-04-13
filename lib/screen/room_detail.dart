@@ -4,6 +4,8 @@ import '../config/default.dart';
 import '../data/model/hotel.dart'; 
 import '../widgets/main_app_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../screen/payform.dart'; 
+import '';
 
 class RoomDetailScreen extends StatelessWidget {
   final Hotel hotel;
@@ -64,7 +66,7 @@ class RoomDetailScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomSheet: _buildBottomButton(commonStyle),
+      bottomSheet: _buildBottomButton(context,commonStyle),
     );
   }
 
@@ -421,7 +423,9 @@ class RoomDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomButton(Function style) {
+  // (Giữ nguyên các phần import và code phía trên của RoomDetailScreen)
+
+  Widget _buildBottomButton(BuildContext context, Function style) {
     return Container(
       padding: const EdgeInsets.all(14.0),
       decoration: BoxDecoration(
@@ -431,7 +435,21 @@ class RoomDetailScreen extends StatelessWidget {
         ],
       ),
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (ctx) => BookingFormPage(
+                // TRUYỀN DỮ LIỆU SANG TRANG ĐIỀN THÔNG TIN
+                hotel: hotel,
+                dateRange: dateRange,
+                rooms: rooms,
+                adults: adults,
+                children: children,
+              ),
+            ),
+          );
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: colorPrimary,
           minimumSize: const Size(double.infinity, 45),

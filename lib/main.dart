@@ -1,6 +1,9 @@
 import 'package:fast_travel_app/screen/admin_screen.dart';
 import 'package:fast_travel_app/screen/home_screen.dart';
 import 'package:fast_travel_app/screen/hotel_manager_screen.dart';
+import 'package:fast_travel_app/screen/paycheck.dart';
+import 'package:fast_travel_app/screen/payform.dart';
+import 'package:fast_travel_app/screen/payment_success.dart';
 import 'package:fast_travel_app/screen/room_type_manager_screen.dart';
 import 'package:fast_travel_app/screen/hotel_review_manager_screen.dart';
 import 'package:fast_travel_app/screen/search_screen.dart';
@@ -36,7 +39,7 @@ class MyApp extends StatelessWidget {
         '/room_type_manager': (context) => const RoomTypeManagerScreen(),
         '/review_manager': (context) => const HotelReviewManagerScreen(),
       },
-      home: const SearchScreen(),
+      home: const HomeScreen(),
       // home: const AdminScreen(),
     );
   }
